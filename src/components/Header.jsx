@@ -1,75 +1,114 @@
-// src/components/Header.jsx
 import { AppBar, Toolbar, Typography, IconButton, Box, Button, Drawer, List, ListItem, InputBase, Paper, Fade } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
-import { useState } from "react";
+import Badge from "@mui/material/Badge";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import DarkModeIcon from "@mui/icons-material/DarkMode"; // الهلال
+import LightModeIcon from "@mui/icons-material/LightMode"; // الشمس
+import { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FavoritesContext } from "../contexts/FavoritesContext";
 
 export default function Header() {
-  const [open, setOpen] = useState(false); // drawer for mobile
-  const [searchOpen, setSearchOpen] = useState(false); // toggle search input
-  const [searchQuery, setSearchQuery] = useState(""); // store search text
+  const [open, setOpen] = useState(false); 
+  const [searchOpen, setSearchOpen] = useState(false); 
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const { favorites } = useContext(FavoritesContext);
+  const navigate = useNavigate();
+
+  // dark / light state
+  const [darkMode, setDarkMode] = useState(true);
+
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    document.body.style.backgroundColor = newMode ? "#121212" : "#fff";
+  };
 
   const handleSearch = (e) => {
     if (e.key === "Enter") {
-      console.log("Searching for:", searchQuery);
-      // here you can trigger fetchMovies(searchQuery)
+      navigate(`/search/${searchQuery}`);
       setSearchOpen(false);
     }
   };
 
   return (
-    <AppBar position="sticky" sx={{   background: "linear-gradient(90deg, rgba(255,0,0,0.2), rgba(0,0,0,0.4))", // gradient background
-    px:5 }}>
+    <AppBar
+      position="sticky"
+      sx={{
+        backgroundColor: darkMode ? "#121212" : "#fff",
+        color: darkMode ? "#fff" : "#121212",
+        px: 3,
+        transition: "all 0.3s ease",
+      }}
+    >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         
         {/* Logo */}
-        <Typography variant="h5" sx={{ fontWeight: "bold", color: "grey" }}>
-          MovieWave
+        <Typography
+          component={Link}
+          to="/"
+          variant="h5"
+          sx={{
+            fontWeight: "bold",
+            textDecoration: "none",
+            color: "#E50914",
+          }}
+        >
+          MovieDB
         </Typography>
 
-        {/* Centered Nav Links inside pill-shaped box */}
-     <Box 
-  sx={{ 
-    display: { xs: "none", md: "flex" }, 
-    gap: 3, 
-    background: "linear-gradient(90deg, rgba(255,0,0,0.2), rgba(0,0,0,0.4))", // gradient background
-    px: 3, 
-    py: 1.5, 
-    borderRadius: "50px", 
-    mt: 2, // margin top
-    mb: 2, // margin bottom
-    boxShadow: "0 4px 20px rgba(0,0,0,0.5)", // shadow effect
-    width:"50%",
-  }}
->
-  {["Home", "Movies", "Series"].map((link) => (
-    <Button
-      key={link}
-      sx={{ 
-        color: "grey", 
-        textTransform: "none", 
-        textAlign:"center",
-        fontWeight: "600",
-        "&:hover": { 
-          background:"red", // hover effect
-          borderRadius: "20px"
-        } 
-      }}
-    >
-      {link}
-    </Button>
-  ))}
-</Box>
+        {/* Nav Links */}
+        <Box
+          sx={{
+            display: { xs: "none", md: "flex" },
+            gap: 3,
+          }}
+        >
+          {["Home", "Movies", "Series"].map((link) => (
+            <Button
+              key={link}
+              component={Link}
+              to={link === "Home" ? "/" : `/${link.toLowerCase()}`}
+              sx={{
+                color: darkMode ? "#B3B3B3" : "#333",
+                textTransform: "none",
+                fontWeight: "600",
+                "&:hover": {
+                  color: "#E50914",
+                },
+              }}
+            >
+              {link}
+            </Button>
+          ))}
+        </Box>
 
-        {/* Right Section (Search + Mobile menu) */}
+        {/* Right Section */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {/* Search Icon toggles search box */}
-          <IconButton sx={{ color: "white" }} onClick={() => setSearchOpen(!searchOpen)}>
+          {/* Favorites */}
+          <IconButton component={Link} to="/favorites" sx={{ color: "#FFD700" }}>
+            <Badge badgeContent={favorites.length} color="error">
+              <FavoriteIcon />
+            </Badge>
+          </IconButton>
+
+          {/* Dark mode toggle */}
+          <IconButton onClick={toggleDarkMode}>
+            {darkMode ? (
+              <DarkModeIcon sx={{ color: "#fff" }} /> // هلال أبيض
+            ) : (
+              <LightModeIcon sx={{ color: "#0f172a" }} /> // شمس كحلي
+            )}
+          </IconButton>
+
+          {/* Search */}
+          <IconButton sx={{ color: darkMode ? "#fff" : "#121212" }} onClick={() => setSearchOpen(!searchOpen)}>
             <SearchIcon />
           </IconButton>
 
-          {/* Mobile Menu Button */}
-          <IconButton sx={{ display: { xs: "block", md: "none" }, color: "white" }} onClick={() => setOpen(true)}>
+          {/* Mobile menu */}
+          <IconButton sx={{ display: { xs: "block", md: "none" }, color: darkMode ? "#fff" : "#121212" }} onClick={() => setOpen(true)}>
             <MenuIcon />
           </IconButton>
         </Box>
@@ -87,7 +126,7 @@ export default function Header() {
             display: "flex",
             alignItems: "center",
             borderRadius: "20px",
-            background: "#222",
+            background: darkMode ? "#1F1F1F" : "#f0f0f0",
           }}
           elevation={6}
         >
@@ -96,17 +135,17 @@ export default function Header() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearch}
-            sx={{ ml: 1, flex: 1, color: "white" }}
+            sx={{ ml: 1, flex: 1, color: darkMode ? "white" : "black" }}
           />
         </Paper>
       </Fade>
 
       {/* Drawer for Mobile */}
       <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
-        <List sx={{ width: 200, background: "#141414", height: "100%", color: "white" }}>
-          <ListItem button>Home</ListItem>
-          <ListItem button>Movies</ListItem>
-          <ListItem button>Series</ListItem>
+        <List sx={{ width: 200, background: darkMode ? "#141414" : "#fff", height: "100%", color: darkMode ? "white" : "black" }}>
+          <ListItem button component={Link} to="/">Home</ListItem>
+          <ListItem button component={Link} to="/movies">Movies</ListItem>
+          <ListItem button component={Link} to="/series">Series</ListItem>
         </List>
       </Drawer>
     </AppBar>
